@@ -153,7 +153,7 @@ fn get_depth_snapshot(symbol: &str, limit: u32) -> Result<DepthSnapshot, Box<dyn
 
 fn main() {
     // 获取深度快照示例
-    match get_depth_snapshot("BNBUSDT", 100) {
+    match get_depth_snapshot("BNBUSDT", 10) {
         Ok(snapshot) => {
             println!("深度快照获取成功!");
             
