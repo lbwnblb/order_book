@@ -74,8 +74,8 @@ impl OrderBook {
     
     /// 应用深度更新到订单薄
     fn apply_depth_update(&mut self, update: &DepthUpdate) -> Result<(), Box<dyn Error>> {
-        // 检查更新ID是否连续
-        if update.U < self.last_update_id && self.last_update_id < update.u {
+        // 如果快照中的 lastUpdateId 小于等于步骤 2 中的 U 值，请返回步骤 3。
+        if update.U <= self.last_update_id && self.last_update_id > update.u {
             // 更新买单
             for bid in &update.b {
                 let price = bid[0].parse::<Decimal>()?;
@@ -244,6 +244,7 @@ fn main() {
                                                        Ok(ob) => {
                                                            println!("创建订单薄成功 u{}",ob.last_update_id);
                                                            order_book = Some(ob);
+                                                           println!("当前e的 U{}",update.U)
                                                            // println!("收到深度更新ID u: {} U {}", update.u,update.U);
 
                                                        }
