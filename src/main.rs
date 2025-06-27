@@ -7,6 +7,130 @@ use std::collections::BTreeMap;
 use rust_decimal::Decimal;
 use rust_decimal::prelude::*;
 
+/// 有限档深度信息结构体，对应币安深度信息
+#[derive(Debug, Deserialize, Serialize)]
+struct LimitedDepthInfo {
+    lastUpdateId: u64,                // 末次更新ID
+    bids: Vec<[String; 3]>,           // 买单 [价格, 数量, 忽略]
+    asks: Vec<[String; 3]>,           // 卖单 [价格, 数量, 忽略]
+}
+
+impl LimitedDepthInfo {
+    /// 打印深度信息摘要
+    /// 
+    /// # 参数
+    /// 
+    /// * `limit` - 要显示的档位数量
+    pub fn print_summary(&self, limit: usize) {
+        println!("深度信息摘要:");
+        println!("最后更新 ID: {}", self.lastUpdateId);
+        println!("买单数量: {}", self.bids.len());
+        println!("卖单数量: {}", self.asks.len());
+        
+        self.print_bids(limit);
+        self.print_asks(limit);
+    }
+    
+    /// 打印买单信息（按价格降序）
+    /// 
+    /// # 参数
+    /// 
+    /// * `limit` - 要显示的档位数量
+    pub fn print_bids(&self, limit: usize) {
+        // 转换买单为 (价格, 数量) 元组
+        let mut bids: Vec<(f64, f64)> = self.bids.iter()
+            .map(|bid| {
+                let price = bid[0].parse::<f64>().unwrap_or(0.0);
+                let quantity = bid[1].parse::<f64>().unwrap_or(0.0);
+                (price, quantity)
+            })
+            .collect();
+        
+        // 按价格降序排列
+        bids.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+        
+        // 打印前N个买单
+        println!("\n前{}个买单 (价格降序):", limit);
+        for (i, (price, quantity)) in bids.iter().take(limit).enumerate() {
+            println!("{}. 价格: {}, 数量: {}", i+1, price, quantity);
+        }
+    }
+    
+    /// 打印卖单信息（按价格升序）
+    /// 
+    /// # 参数
+    /// 
+    /// * `limit` - 要显示的档位数量
+    pub fn print_asks(&self, limit: usize) {
+        // 转换卖单为 (价格, 数量) 元组
+        let mut asks: Vec<(f64, f64)> = self.asks.iter()
+            .map(|ask| {
+                let price = ask[0].parse::<f64>().unwrap_or(0.0);
+                let quantity = ask[1].parse::<f64>().unwrap_or(0.0);
+                (price, quantity)
+            })
+            .collect();
+        
+        // 按价格升序排列
+        asks.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+        
+        // 打印前N个卖单
+        println!("\n前{}个卖单 (价格升序):", limit);
+        for (i, (price, quantity)) in asks.iter().take(limit).enumerate() {
+            println!("{}. 价格: {}, 数量: {}", i+1, price, quantity);
+        }
+    }
+    
+    /// 打印市场深度信息（同时展示买卖盘）
+    /// 
+    /// # 参数
+    /// 
+    /// * `limit` - 要显示的档位数量
+    pub fn print_market_depth(&self, limit: usize) {
+        // 转换买单和卖单为 (价格, 数量) 元组
+        let mut bids: Vec<(f64, f64)> = self.bids.iter()
+            .map(|bid| {
+                let price = bid[0].parse::<f64>().unwrap_or(0.0);
+                let quantity = bid[1].parse::<f64>().unwrap_or(0.0);
+                (price, quantity)
+            })
+            .collect();
+        
+        let mut asks: Vec<(f64, f64)> = self.asks.iter()
+            .map(|ask| {
+                let price = ask[0].parse::<f64>().unwrap_or(0.0);
+                let quantity = ask[1].parse::<f64>().unwrap_or(0.0);
+                (price, quantity)
+            })
+            .collect();
+        
+        // 排序
+        bids.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+        asks.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+        
+        println!("\n市场深度信息 (深度: {}):", limit);
+        println!("{:<5} {:<15} {:<15} | {:<15} {:<15} {:<5}", 
+                 "档位", "买单价格", "买单数量", "卖单价格", "卖单数量", "档位");
+        println!("{:-<70}", "");
+        
+        for i in 0..limit {
+            let bid_info = if i < bids.len() {
+                format!("{:<15.8} {:<15.8}", bids[i].0, bids[i].1)
+            } else {
+                format!("{:<15} {:<15}", "-", "-")
+            };
+            
+            let ask_info = if i < asks.len() {
+                format!("{:<15.8} {:<15.8}", asks[i].0, asks[i].1)
+            } else {
+                format!("{:<15} {:<15}", "-", "-")
+            };
+            
+            println!("{:<5} {} | {} {:<5}", i+1, bid_info, ask_info, i+1);
+        }
+    }
+}
+
 /// 深度更新事件结构体，对应币安WebSocket深度更新消息
 #[derive(Debug, Deserialize, Serialize)]
 struct DepthUpdate {
@@ -211,7 +335,7 @@ fn main() {
     // WebSocket深度更新示例（注释掉的代码）
     let subscribe = json!({
         "method": "SUBSCRIBE",
-        "params": ["bnbusdt@depth@100ms"],
+        "params": ["bnbusdt@depth@100ms","bnbusdt@depth20@100ms"],
         "id": 1
     }).to_string();
 
@@ -224,9 +348,9 @@ fn main() {
                     loop {
                          match socket.read(){
                             Ok(Message::Text(msg)) => {
-
+                                println!("收到消息: {}", msg);
                                if msg.contains(r#""e":"depthUpdate""#) {
-                                   println!("收到消息: {}", msg);
+
                                    match serde_json::from_str::<DepthUpdate>(&msg) {
                                        Ok(update) => {
                                            println!("收到深度更新ID u: {} U {}", update.u,update.U);
