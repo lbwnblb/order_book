@@ -353,7 +353,7 @@ fn main() {
                                    match serde_json::from_str::<LimitedDepthInfo>(&msg){
                                        Ok(limiteddepthinfo) => {
                                            // println!("收到有限深度信息: {:?}", limiteddepthinfo)
-                                           limiteddepthinfo.print_summary(1);
+                                           limiteddepthinfo.print_summary(2);
                                        }
                                        Err(_) => {
                                            println!("无法解析有限深度信息")
@@ -371,7 +371,7 @@ fn main() {
                                                match o_b.apply_depth_update(&update){
                                                    Ok(_) => {
                                                        // println!("订单薄更新成功");
-                                                       o_b.print_summary(1);
+                                                       o_b.print_summary(2);
                                                    }
                                                    Err(e) => {
                                                        println!("{}", e)
