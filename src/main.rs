@@ -241,12 +241,13 @@ fn main() {
                                            match get_depth_snapshot("BNBUSDT",1000) {
                                                Ok(snapshot) => {
                                                    match OrderBook::from_snapshot(snapshot) {
-                                                       Ok(ob) => {
+                                                       Ok(mut ob) => {
                                                            println!("创建订单薄成功 u{}",ob.last_update_id);
-                                                           order_book = Some(ob);
-                                                           println!("当前e的 U{} u{}",update.U,update.u)
-                                                           // println!("收到深度更新ID u: {} U {}", update.u,update.U);
 
+                                                           println!("当前e的 U{} u{}",update.U,update.u);
+                                                           ob.last_update_id = update.u;
+                                                           // println!("收到深度更新ID u: {} U {}", update.u,update.U);
+                                                           order_book = Some(ob);
                                                        }
                                                        Err(e) => {
                                                            println!("创建订单薄失败{}",e);
