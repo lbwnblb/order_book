@@ -54,6 +54,7 @@ impl LimitedDepthInfo {
         for (i, (price, quantity)) in bids.iter().take(limit).enumerate() {
             println!("{}. 价格: {}, 数量: {}", i+1, price, quantity);
         }
+        println!();
     }
     
     /// 打印卖单信息（按价格升序）
@@ -274,6 +275,7 @@ impl OrderBook {
         // for (i, (price, quantity)) in self.asks_list().iter().take(limit).enumerate() {
         //     println!("{}. 价格: {}, 数量: {}", i+1, price, quantity);
         // }
+        println!();
     }
     
     /// 获取最高买价
