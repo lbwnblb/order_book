@@ -221,12 +221,12 @@ fn main() {
                 if let Ok(_) = socket.send(Message::Text(Utf8Bytes::from(subscribe))) {
                     loop {
                         let mut  order_book: Option<OrderBook> = None;
-                        match socket.read(){
+                         match socket.read(){
                             Ok(Message::Text(msg)) => {
                                // println!("收到消息: {}", msg);
                                match serde_json::from_str::<DepthUpdate>(&msg) {
                                    Ok(update) => {
-                                       if let  Some(ref mut o_b) = order_book{
+                                       if let  Some(mut o_b) = order_book{
                                            match o_b.apply_depth_update(&update){
                                                Ok(_) => {
                                                    println!("订单薄更新成功")
@@ -241,6 +241,7 @@ fn main() {
                                                    match OrderBook::from_snapshot(snapshot) {
                                                        Ok(ob) => {
                                                            order_book = Some(ob);
+                                                           println!("创建订单薄成功")
                                                        }
                                                        Err(e) => {
                                                            println!("创建订单薄失败{}",e);
@@ -255,7 +256,7 @@ fn main() {
                                        // 这里可以处理更新数据
                                    },
                                    Err(e) => {
-                                       println!("解析深度更新失败: {}", e);
+                                       println!("解析深度更新失败: {} {}", e,msg);
                                    }
                                }
                             }
