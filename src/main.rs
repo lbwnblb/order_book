@@ -28,7 +28,7 @@ impl LimitedDepthInfo {
         // println!("卖单数量: {}", self.asks.len());
         
         self.print_bids(limit);
-        self.print_asks(limit);
+        // self.print_asks(limit);
     }
     
     /// 打印买单信息（按价格降序）
@@ -270,10 +270,10 @@ impl OrderBook {
         }
         
         // 打印前N个卖单（价格升序）
-        println!("\n前{}个卖单 (价格升序):", limit);
-        for (i, (price, quantity)) in self.asks_list().iter().take(limit).enumerate() {
-            println!("{}. 价格: {}, 数量: {}", i+1, price, quantity);
-        }
+        // println!("\n前{}个卖单 (价格升序):", limit);
+        // for (i, (price, quantity)) in self.asks_list().iter().take(limit).enumerate() {
+        //     println!("{}. 价格: {}, 数量: {}", i+1, price, quantity);
+        // }
     }
     
     /// 获取最高买价
