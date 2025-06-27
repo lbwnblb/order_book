@@ -75,7 +75,7 @@ impl OrderBook {
     /// 应用深度更新到订单薄
     fn apply_depth_update(&mut self, update: &DepthUpdate) -> Result<(), Box<dyn Error>> {
         // 检查更新ID是否连续
-        if update.U <= self.last_update_id + 1 && update.u >= self.last_update_id + 1 {
+        if update.U < self.last_update_id && update.u < update.u {
             // 更新买单
             for bid in &update.b {
                 let price = bid[0].parse::<Decimal>()?;
@@ -220,12 +220,38 @@ fn main() {
                 // 订阅深度更新
                 if let Ok(_) = socket.send(Message::Text(Utf8Bytes::from(subscribe))) {
                     loop {
+                        let mut  order_book: Option<OrderBook> = None;
                         match socket.read(){
                             Ok(Message::Text(msg)) => {
-                               println!("收到消息: {}", msg);
+                               // println!("收到消息: {}", msg);
                                match serde_json::from_str::<DepthUpdate>(&msg) {
                                    Ok(update) => {
-                                       println!("收到深度更新: 交易对 {}, 更新ID: {} - {}", update.s, update.U, update.u);
+                                       if let  Some(ref mut o_b) = order_book{
+                                           match o_b.apply_depth_update(&update){
+                                               Ok(_) => {
+                                                   println!("订单薄更新成功")
+                                               }
+                                               Err(e) => {
+                                                   println!("{}", e)
+                                               }
+                                           }
+                                       }else {
+                                           match get_depth_snapshot("BNBUSDT",1000) {
+                                               Ok(snapshot) => {
+                                                   match OrderBook::from_snapshot(snapshot) {
+                                                       Ok(ob) => {
+                                                           order_book = Some(ob);
+                                                       }
+                                                       Err(e) => {
+                                                           println!("创建订单薄失败{}",e);
+                                                       }
+                                                   }
+                                               },
+                                               Err(e) => {
+                                                   println!("获取深度快照失败: {}", e)
+                                               }
+                                           }
+                                       }
                                        // 这里可以处理更新数据
                                    },
                                    Err(e) => {
