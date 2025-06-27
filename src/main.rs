@@ -219,15 +219,15 @@ fn main() {
             if response.status().as_u16() == 101 {
                 // 订阅深度更新
                 if let Ok(_) = socket.send(Message::Text(Utf8Bytes::from(subscribe))) {
+                    let mut  order_book: Option<OrderBook> = None;
                     loop {
-                        let mut  order_book: Option<OrderBook> = None;
                          match socket.read(){
                             Ok(Message::Text(msg)) => {
                                // println!("收到消息: {}", msg);
                                match serde_json::from_str::<DepthUpdate>(&msg) {
                                    Ok(update) => {
-                                       if let  Some(mut o_b) = order_book{
-                                           match o_b.apply_depth_update(&update){
+                                       if let  Some(ref mut o_b) = order_book {
+                                       match o_b.apply_depth_update(&update){
                                                Ok(_) => {
                                                    println!("订单薄更新成功")
                                                }
