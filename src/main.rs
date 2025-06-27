@@ -11,8 +11,8 @@ use rust_decimal::prelude::*;
 #[derive(Debug, Deserialize, Serialize)]
 struct LimitedDepthInfo {
     lastUpdateId: u64,                // 末次更新ID
-    bids: Vec<[String; 3]>,           // 买单 [价格, 数量, 忽略]
-    asks: Vec<[String; 3]>,           // 卖单 [价格, 数量, 忽略]
+    bids: Vec<[String; 2]>,           // 买单 [价格, 数量]
+    asks: Vec<[String; 2]>,           // 卖单 [价格, 数量]
 }
 
 impl LimitedDepthInfo {
