@@ -7,6 +7,19 @@ use std::collections::BTreeMap;
 use rust_decimal::Decimal;
 use rust_decimal::prelude::*;
 
+/// 深度更新事件结构体，对应币安WebSocket深度更新消息
+#[derive(Debug, Deserialize, Serialize)]
+struct DepthUpdate {
+    e: String,             // 事件类型
+    E: u64,                // 事件时间
+    s: String,             // 交易对
+    U: u64,                // 从上次推送至今新增的第一个update Id
+    u: u64,                // 从上次推送至今新增的最后一个update Id
+    b: Vec<[String; 3]>,   // 变动的买单深度 [价格, 数量, 忽略]
+    a: Vec<[String; 3]>,   // 变动的卖单深度 [价格, 数量, 忽略]
+}
+
+/// 深度快照结构体，对应币安REST API深度快照
 #[derive(Debug, Deserialize, Serialize)]
 struct DepthSnapshot {
     lastUpdateId: u64,
@@ -57,6 +70,46 @@ impl OrderBook {
         };
         
         Ok(order_book)
+    }
+    
+    /// 应用深度更新到订单薄
+    fn apply_depth_update(&mut self, update: &DepthUpdate) -> Result<(), Box<dyn Error>> {
+        // 检查更新ID是否连续
+        if update.U <= self.last_update_id + 1 && update.u >= self.last_update_id + 1 {
+            // 更新买单
+            for bid in &update.b {
+                let price = bid[0].parse::<Decimal>()?;
+                let quantity = bid[1].parse::<Decimal>()?;
+                
+                if quantity.is_zero() {
+                    // 数量为0表示删除此价格的订单
+                    self.bids.remove(&price);
+                } else {
+                    // 更新或添加此价格的订单
+                    self.bids.insert(price, quantity);
+                }
+            }
+            
+            // 更新卖单
+            for ask in &update.a {
+                let price = ask[0].parse::<Decimal>()?;
+                let quantity = ask[1].parse::<Decimal>()?;
+                
+                if quantity.is_zero() {
+                    // 数量为0表示删除此价格的订单
+                    self.asks.remove(&price);
+                } else {
+                    // 更新或添加此价格的订单
+                    self.asks.insert(price, quantity);
+                }
+            }
+            
+            // 更新最后更新ID
+            self.last_update_id = update.u;
+            Ok(())
+        } else {
+            Err("深度更新ID不连续，需要重新获取快照".into())
+        }
     }
     
     /// 获取买单列表（按价格降序排列）
@@ -153,69 +206,44 @@ fn get_depth_snapshot(symbol: &str, limit: u32) -> Result<DepthSnapshot, Box<dyn
 
 fn main() {
     // 获取深度快照示例
-    match get_depth_snapshot("BNBUSDT", 10) {
-        Ok(snapshot) => {
-            println!("深度快照获取成功!");
-            
-            // 转换为订单薄结构
-            match OrderBook::from_snapshot(snapshot) {
-                Ok(order_book) => {
-                   let bids_list = order_book.bids_list();
-                   let asks_list = order_book.asks_list();
-                    for bl in bids_list {
-                        println!("买单: {}, 数量: {}", bl.0, bl.1)
+
+    // WebSocket深度更新示例（注释掉的代码）
+    let subscribe = json!({
+        "method": "SUBSCRIBE",
+        "params": ["bnbusdt@depth@100ms"],
+        "id": 1
+    }).to_string();
+
+    match connect("wss://stream.binance.com:9443/ws") {
+        Ok((mut socket, response)) => {
+            if response.status().as_u16() == 101 {
+                // 订阅深度更新
+                if let Ok(_) = socket.send(Message::Text(Utf8Bytes::from(subscribe))) {
+                    loop {
+                        match socket.read(){
+                            Ok(Message::Text(msg)) => {
+                               match serde_json::from_str::<DepthUpdate>(&msg) {
+                                   Ok(update) => {
+                                       println!("收到深度更新: 交易对 {}, 更新ID: {} - {}", update.s, update.U, update.u);
+                                       // 这里可以处理更新数据
+                                   },
+                                   Err(e) => {
+                                       println!("解析深度更新失败: {}", e);
+                                   }
+                               }
+                            }
+                            Err(e) => {
+                                println!("读取WebSocket消息失败: {}", e);
+                            }
+                            _ => {}
+                        };
                     }
-                    for al in asks_list {
-                        println!("卖单: {}, 数量: {}", al.0, al.1)
-                    }
-                },
-                Err(e) => {
-                    println!("创建订单薄失败: {}", e);
+
                 }
-            }
+            } else {}
         },
         Err(e) => {
-            println!("获取深度快照失败: {}", e);
+            println!("WebSocket连接失败: {}", e);
         }
-    }
-
-    // let subscribe = json!({
-    //             "method": "SUBSCRIBE",
-    //             "params": ["btcusdt@trade"],
-    //             "id": 1
-    //         }).to_string();
-    //
-    //
-    // match connect("wss://stream.binance.com:9443/ws"){
-    //     Ok((mut socket, response)) => {
-    //         match response.status().as_u16() {
-    //             101 => {
-    //                 match socket.send(Message::Text(Utf8Bytes::from(subscribe))){
-    //                     Ok(_) => {
-    //                         loop {
-    //                             match socket.read() {
-    //                                 Ok(Message::Text(text)) => {
-    //                                     println!("{}", text);
-    //                                 },
-    //                                 Err(_) => {}
-    //                                 _ => {}
-    //                             }
-    //                         }
-    //                     }
-    //                     Err(_) => {}
-    //                 }
-    //
-    //             },
-    //             _ => {
-    //                 println!("连接异常{:?}", response);
-    //             }
-    //         }
-    //
-    //
-    //
-    //     },
-    //     Err(e) => {
-    //         println!("连接异常: {}", e);
-    //     }
-    // };
+    };
 }
