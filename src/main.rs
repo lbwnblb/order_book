@@ -349,6 +349,7 @@ fn main() {
                          match socket.read(){
                             Ok(Message::Text(msg)) => {
                                 if msg.contains(r#""lastUpdateId""#) {
+                                    println!("{}",msg);
                                    match serde_json::from_str::<LimitedDepthInfo>(&msg){
                                        Ok(limiteddepthinfo) => {
                                            println!("收到有限深度信息: {:?}", limiteddepthinfo)
