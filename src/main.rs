@@ -50,7 +50,7 @@ impl LimitedDepthInfo {
         bids.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
         
         // 打印前N个买单
-        println!("\n前{}个买单 (价格降序):", limit);
+        println!("前{}个买单 (价格降序):", limit);
         for (i, (price, quantity)) in bids.iter().take(limit).enumerate() {
             println!("{}. 价格: {}, 数量: {}", i+1, price, quantity);
         }
@@ -264,7 +264,7 @@ impl OrderBook {
         // println!("卖单数量: {}", self.asks.len());
         
         // 打印前N个买单（价格降序）
-        println!("\n前{}个买单 (价格降序):", limit);
+        println!("前{}个买单 (价格降序):", limit);
         for (i, (price, quantity)) in self.bids_list().iter().take(limit).enumerate() {
             println!("{}. 价格: {}, 数量: {}", i+1, price, quantity);
         }
