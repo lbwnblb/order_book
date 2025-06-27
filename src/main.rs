@@ -222,15 +222,16 @@ fn main() {
                     loop {
                         match socket.read(){
                             Ok(Message::Text(msg)) => {
-                               match serde_json::from_str::<DepthUpdate>(&msg) {
-                                   Ok(update) => {
-                                       println!("收到深度更新: 交易对 {}, 更新ID: {} - {}", update.s, update.U, update.u);
-                                       // 这里可以处理更新数据
-                                   },
-                                   Err(e) => {
-                                       println!("解析深度更新失败: {}", e);
-                                   }
-                               }
+                               println!("收到消息: {}", msg);
+                               // match serde_json::from_str::<DepthUpdate>(&msg) {
+                               //     Ok(update) => {
+                               //         println!("收到深度更新: 交易对 {}, 更新ID: {} - {}", update.s, update.U, update.u);
+                               //         // 这里可以处理更新数据
+                               //     },
+                               //     Err(e) => {
+                               //         println!("解析深度更新失败: {}", e);
+                               //     }
+                               // }
                             }
                             Err(e) => {
                                 println!("读取WebSocket消息失败: {}", e);
