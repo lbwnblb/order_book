@@ -226,7 +226,9 @@ fn main() {
                                // println!("收到消息: {}", msg);
                                match serde_json::from_str::<DepthUpdate>(&msg) {
                                    Ok(update) => {
+                                       println!("收到深度更新ID u: {} U {}", update.u,update.U);
                                        if let  Some(ref mut o_b) = order_book {
+
                                        match o_b.apply_depth_update(&update){
                                                Ok(_) => {
                                                    println!("订单薄更新成功")
@@ -240,8 +242,10 @@ fn main() {
                                                Ok(snapshot) => {
                                                    match OrderBook::from_snapshot(snapshot) {
                                                        Ok(ob) => {
+                                                           println!("创建订单薄成功 u{}",ob.last_update_id);
                                                            order_book = Some(ob);
-                                                           println!("创建订单薄成功")
+                                                           // println!("收到深度更新ID u: {} U {}", update.u,update.U);
+
                                                        }
                                                        Err(e) => {
                                                            println!("创建订单薄失败{}",e);
