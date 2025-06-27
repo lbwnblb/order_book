@@ -75,6 +75,7 @@ impl OrderBook {
     /// 应用深度更新到订单薄
     fn apply_depth_update(&mut self, update: &DepthUpdate) -> Result<(), Box<dyn Error>> {
         // 如果快照中的 lastUpdateId 小于等于步骤 2 中的 U 值，请返回步骤 3。
+        println!("当前self u{}",self.last_update_id);
         if update.U <= self.last_update_id && self.last_update_id > update.u {
             // 更新买单
             for bid in &update.b {
