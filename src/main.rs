@@ -349,7 +349,7 @@ fn main() {
                          match socket.read(){
                             Ok(Message::Text(msg)) => {
                                 if msg.contains(r#""lastUpdateId""#) {
-                                    println!("{}",msg);
+                                    // println!("{}",msg);
                                    match serde_json::from_str::<LimitedDepthInfo>(&msg){
                                        Ok(limiteddepthinfo) => {
                                            println!("收到有限深度信息: {:?}", limiteddepthinfo)
@@ -359,18 +359,18 @@ fn main() {
                                        }
                                    }
                                 }
-                                println!("收到消息: {}", msg);
+                                // println!("收到消息: {}", msg);
                                if msg.contains(r#""e":"depthUpdate""#) {
 
                                    match serde_json::from_str::<DepthUpdate>(&msg) {
                                        Ok(update) => {
-                                           println!("收到深度更新ID u: {} U {}", update.u,update.U);
+                                           // println!("收到深度更新ID u: {} U {}", update.u,update.U);
                                            if let  Some(ref mut o_b) = order_book {
 
                                                match o_b.apply_depth_update(&update){
                                                    Ok(_) => {
                                                        println!("订单薄更新成功");
-                                                       o_b.print_summary(20);
+                                                       // o_b.print_summary(20);
                                                    }
                                                    Err(e) => {
                                                        println!("{}", e)
