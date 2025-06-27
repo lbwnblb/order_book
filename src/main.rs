@@ -224,7 +224,8 @@ fn main() {
                     loop {
                          match socket.read(){
                             Ok(Message::Text(msg)) => {
-                               // println!("收到消息: {}", msg);
+                               println!("收到消息: {}", msg);
+                               if msg.contains(r#""#) {  }
                                match serde_json::from_str::<DepthUpdate>(&msg) {
                                    Ok(update) => {
                                        println!("收到深度更新ID u: {} U {}", update.u,update.U);
@@ -232,7 +233,8 @@ fn main() {
 
                                        match o_b.apply_depth_update(&update){
                                                Ok(_) => {
-                                                   println!("订单薄更新成功")
+                                                   println!("订单薄更新成功");
+                                                   o_b.print_summary(20);
                                                }
                                                Err(e) => {
                                                    println!("{}", e)
@@ -244,7 +246,7 @@ fn main() {
                                                    match OrderBook::from_snapshot(snapshot) {
                                                        Ok(mut ob) => {
 
-                                                           println!("当前e的 U{} u{} ob u{}",update.U,update.u,ob.last_update_id);
+                                                           // println!("当前e的 U{} u{} ob u{}",update.U,update.u,ob.last_update_id);
                                                            //如果event U (第一次更新 ID) > 您本地order book的更新 ID，则说明出现问题。请丢弃您的本地order book并从头开始开始重建。
                                                            if update.U < ob.last_update_id && ob.last_update_id > update.u {
                                                                println!("创建order book");
