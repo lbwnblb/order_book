@@ -22,10 +22,10 @@ impl LimitedDepthInfo {
     /// 
     /// * `limit` - 要显示的档位数量
     pub fn print_summary(&self, limit: usize) {
-        println!("深度信息摘要:");
-        println!("最后更新 ID: {}", self.lastUpdateId);
-        println!("买单数量: {}", self.bids.len());
-        println!("卖单数量: {}", self.asks.len());
+        // println!("深度信息摘要:");
+        println!("有限深度信息 最后更新 ID: {}", self.lastUpdateId);
+        // println!("买单数量: {}", self.bids.len());
+        // println!("卖单数量: {}", self.asks.len());
         
         self.print_bids(limit);
         self.print_asks(limit);
@@ -199,7 +199,7 @@ impl OrderBook {
     /// 应用深度更新到订单薄
     fn apply_depth_update(&mut self, update: &DepthUpdate) -> Result<(), Box<dyn Error>> {
         // 如果快照中的 lastUpdateId 小于等于步骤 2 中的 U 值，请返回步骤 3。
-        println!("当前self u {}",self.last_update_id);
+        // println!("当前self u {}",self.last_update_id);
         if  self.last_update_id < update.u {
             // 更新买单
             for bid in &update.b {
@@ -258,10 +258,10 @@ impl OrderBook {
     
     /// 打印订单薄信息
     fn print_summary(&self, limit: usize) {
-        println!("订单薄信息:");
-        println!("最后更新 ID: {}", self.last_update_id);
-        println!("买单数量: {}", self.bids.len());
-        println!("卖单数量: {}", self.asks.len());
+        // println!("订单薄信息:");
+        println!("订单薄信息 最后更新 ID: {}", self.last_update_id);
+        // println!("买单数量: {}", self.bids.len());
+        // println!("卖单数量: {}", self.asks.len());
         
         // 打印前N个买单（价格降序）
         println!("\n前{}个买单 (价格降序):", limit);
