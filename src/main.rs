@@ -15,8 +15,8 @@ struct DepthUpdate {
     s: String,             // 交易对
     U: u64,                // 从上次推送至今新增的第一个update Id
     u: u64,                // 从上次推送至今新增的最后一个update Id
-    b: Vec<[String; 3]>,   // 变动的买单深度 [价格, 数量, 忽略]
-    a: Vec<[String; 3]>,   // 变动的卖单深度 [价格, 数量, 忽略]
+    b: Vec<[String; 2]>,   // 变动的买单深度 [价格, 数量]
+    a: Vec<[String; 2]>,   // 变动的卖单深度 [价格, 数量]
 }
 
 /// 深度快照结构体，对应币安REST API深度快照
@@ -223,15 +223,15 @@ fn main() {
                         match socket.read(){
                             Ok(Message::Text(msg)) => {
                                println!("收到消息: {}", msg);
-                               // match serde_json::from_str::<DepthUpdate>(&msg) {
-                               //     Ok(update) => {
-                               //         println!("收到深度更新: 交易对 {}, 更新ID: {} - {}", update.s, update.U, update.u);
-                               //         // 这里可以处理更新数据
-                               //     },
-                               //     Err(e) => {
-                               //         println!("解析深度更新失败: {}", e);
-                               //     }
-                               // }
+                               match serde_json::from_str::<DepthUpdate>(&msg) {
+                                   Ok(update) => {
+                                       println!("收到深度更新: 交易对 {}, 更新ID: {} - {}", update.s, update.U, update.u);
+                                       // 这里可以处理更新数据
+                                   },
+                                   Err(e) => {
+                                       println!("解析深度更新失败: {}", e);
+                                   }
+                               }
                             }
                             Err(e) => {
                                 println!("读取WebSocket消息失败: {}", e);
