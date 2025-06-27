@@ -75,7 +75,7 @@ impl OrderBook {
     /// 应用深度更新到订单薄
     fn apply_depth_update(&mut self, update: &DepthUpdate) -> Result<(), Box<dyn Error>> {
         // 检查更新ID是否连续
-        if update.U < self.last_update_id && update.u < update.u {
+        if update.U < self.last_update_id && self.last_update_id < update.u {
             // 更新买单
             for bid in &update.b {
                 let price = bid[0].parse::<Decimal>()?;
