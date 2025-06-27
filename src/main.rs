@@ -244,7 +244,7 @@ fn main() {
                                                        Ok(ob) => {
                                                            println!("创建订单薄成功 u{}",ob.last_update_id);
                                                            order_book = Some(ob);
-                                                           println!("当前e的 U{}",update.U)
+                                                           println!("当前e的 U{} u{}",update.U,update.u)
                                                            // println!("收到深度更新ID u: {} U {}", update.u,update.U);
 
                                                        }
