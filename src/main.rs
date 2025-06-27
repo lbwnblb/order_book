@@ -224,52 +224,55 @@ fn main() {
                     loop {
                          match socket.read(){
                             Ok(Message::Text(msg)) => {
-                               println!("收到消息: {}", msg);
-                               if msg.contains(r#""#) {  }
-                               match serde_json::from_str::<DepthUpdate>(&msg) {
-                                   Ok(update) => {
-                                       println!("收到深度更新ID u: {} U {}", update.u,update.U);
-                                       if let  Some(ref mut o_b) = order_book {
 
-                                       match o_b.apply_depth_update(&update){
-                                               Ok(_) => {
-                                                   println!("订单薄更新成功");
-                                                   o_b.print_summary(20);
-                                               }
-                                               Err(e) => {
-                                                   println!("{}", e)
-                                               }
-                                           }
-                                       }else {
-                                           match get_depth_snapshot("BNBUSDT",1000) {
-                                               Ok(snapshot) => {
-                                                   match OrderBook::from_snapshot(snapshot) {
-                                                       Ok(mut ob) => {
+                               if msg.contains(r#""e":"depthUpdate""#) {
+                                   println!("收到消息: {}", msg);
+                                   match serde_json::from_str::<DepthUpdate>(&msg) {
+                                       Ok(update) => {
+                                           println!("收到深度更新ID u: {} U {}", update.u,update.U);
+                                           if let  Some(ref mut o_b) = order_book {
 
-                                                           // println!("当前e的 U{} u{} ob u{}",update.U,update.u,ob.last_update_id);
-                                                           //如果event U (第一次更新 ID) > 您本地order book的更新 ID，则说明出现问题。请丢弃您的本地order book并从头开始开始重建。
-                                                           if update.U < ob.last_update_id && ob.last_update_id > update.u {
-                                                               println!("创建order book");
-                                                               ob.last_update_id = update.u;
-                                                               order_book = Some(ob);
-                                                           }
-
-                                                       }
-                                                       Err(e) => {
-                                                           println!("创建订单薄失败{}",e);
-                                                       }
+                                               match o_b.apply_depth_update(&update){
+                                                   Ok(_) => {
+                                                       println!("订单薄更新成功");
+                                                       o_b.print_summary(20);
                                                    }
-                                               },
-                                               Err(e) => {
-                                                   println!("获取深度快照失败: {}", e)
+                                                   Err(e) => {
+                                                       println!("{}", e)
+                                                   }
+                                               }
+                                           }else {
+                                               match get_depth_snapshot("BNBUSDT",1000) {
+                                                   Ok(snapshot) => {
+                                                       match OrderBook::from_snapshot(snapshot) {
+                                                           Ok(mut ob) => {
+
+                                                               // println!("当前e的 U{} u{} ob u{}",update.U,update.u,ob.last_update_id);
+                                                               //如果event U (第一次更新 ID) > 您本地order book的更新 ID，则说明出现问题。请丢弃您的本地order book并从头开始开始重建。
+                                                               if update.U < ob.last_update_id && ob.last_update_id > update.u {
+                                                                   println!("创建order book");
+                                                                   ob.last_update_id = update.u;
+                                                                   order_book = Some(ob);
+                                                               }
+
+                                                           }
+                                                           Err(e) => {
+                                                               println!("创建订单薄失败{}",e);
+                                                           }
+                                                       }
+                                                   },
+                                                   Err(e) => {
+                                                       println!("获取深度快照失败: {}", e)
+                                                   }
                                                }
                                            }
+                                           // 这里可以处理更新数据
+                                       },
+                                       Err(e) => {
+                                           println!("解析深度更新失败: {} {}", e,msg);
                                        }
-                                       // 这里可以处理更新数据
-                                   },
-                                   Err(e) => {
-                                       println!("解析深度更新失败: {} {}", e,msg);
                                    }
+
                                }
                             }
                             Err(e) => {
