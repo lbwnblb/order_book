@@ -242,13 +242,12 @@ fn main() {
                                            match get_depth_snapshot("BNBUSDT",1000) {
                                                Ok(snapshot) => {
                                                    match OrderBook::from_snapshot(snapshot) {
-                                                       Ok(mut ob) => {
+                                                       Ok(ob) => {
                                                            println!("创建订单薄成功 u{}",ob.last_update_id);
 
                                                            println!("当前e的 U{} u{}",update.U,update.u);
                                                            //如果event U (第一次更新 ID) > 您本地order book的更新 ID，则说明出现问题。请丢弃您的本地order book并从头开始开始重建。
                                                            if update.U < ob.last_update_id && ob.last_update_id < update.u {
-                                                               ob.last_update_id = update.u;
                                                                println!("创建order book");
                                                                order_book = Some(ob);
                                                            }
