@@ -374,7 +374,7 @@ fn main() {
                                                match o_b.apply_depth_update(&update){
                                                    Ok(_) => {
                                                        // println!("订单薄更新成功");
-                                                       o_b.print_summary(20);
+                                                       o_b.print_summary(500);
                                                    }
                                                    Err(e) => {
                                                        println!("{}", e)
