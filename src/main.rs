@@ -346,6 +346,7 @@ fn main() {
             if response.status().as_u16() == 101 {
                 // 订阅深度更新
                 if let Ok(_) = socket.send(Message::Text(Utf8Bytes::from(subscribe))) {
+
                     let mut  order_book: Option<OrderBook> = None;
                     loop {
                          match socket.read(){
@@ -355,7 +356,7 @@ fn main() {
                                    match serde_json::from_str::<LimitedDepthInfo>(&msg){
                                        Ok(limiteddepthinfo) => {
                                            // println!("收到有限深度信息: {:?}", limiteddepthinfo)
-                                           limiteddepthinfo.print_summary(2);
+                                           limiteddepthinfo.print_summary(20);
                                        }
                                        Err(_) => {
                                            println!("无法解析有限深度信息")
@@ -373,7 +374,7 @@ fn main() {
                                                match o_b.apply_depth_update(&update){
                                                    Ok(_) => {
                                                        // println!("订单薄更新成功");
-                                                       o_b.print_summary(2);
+                                                       o_b.print_summary(20);
                                                    }
                                                    Err(e) => {
                                                        println!("{}", e)
