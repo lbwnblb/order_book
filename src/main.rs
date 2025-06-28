@@ -381,7 +381,7 @@ fn main() {
                                                    }
                                                }
                                            }else {
-                                               match get_depth_snapshot("BNBUSDT",1000) {
+                                               match get_depth_snapshot("BNBUSDT",5000) {
                                                    Ok(snapshot) => {
                                                        match OrderBook::from_snapshot(snapshot) {
                                                            Ok(mut ob) => {
